@@ -1,0 +1,88 @@
+name: Cloud App CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  build:
+    name: "Stage 1 — Build & Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo, pdo_mysql
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Lint PHP files
+        run: find . -name "*.php" -not -path "./vendor/*" | xargs -n1 php -l
+
+  test:
+    name: "Stage 2 — Unit & Integration Tests"
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: cloud_app_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+      - run: composer install
+      - name: Run tests
+        run: vendor/bin/phpunit --log-junit reports/results.xml
+
+  security:
+    name: "Stage 3 — OWASP Security Scan"
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "cloud-app"
+          path: "."
+          format: "HTML"
+          args: --failOnCVSS 7
+
+  deploy:
+    name: "Stage 4 — Blue-Green Deploy"
+    runs-on: ubuntu-latest
+    needs: security
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Blue (staging)
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_email:   ${{ secrets.HEROKU_EMAIL }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_BLUE }}
+
+      - name: Smoke test Blue
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            https://${{ secrets.HEROKU_APP_BLUE }}.herokuapp.com/customers.php)
+          [ "$STATUS" = "200" ] || (echo "Smoke test failed: $STATUS" && exit 1)
+
+      - name: Promote Blue to Green (zero-downtime)
+        run: |
+          heroku pipelines:promote \
+            --app ${{ secrets.HEROKU_APP_BLUE }} \
+            --to  ${{ secrets.HEROKU_APP_GREEN }}

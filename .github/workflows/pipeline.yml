@@ -44,8 +44,10 @@ jobs:
         with:
           php-version: "8.2"
       - run: composer install
+      - name: Create reports directory
+        run: mkdir -p reports
       - name: Run tests
-        run: vendor/bin/phpunit --log-junit reports/results.xml
+        run: vendor/bin/phpunit --configuration phpunit.xml --log-junit reports/results.xml
 
   security:
     name: "Stage 3 — OWASP Security Scan"

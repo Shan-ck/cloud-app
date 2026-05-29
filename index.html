@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud App — Customer Management System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 { color: #2b6cb0; margin-bottom: 10px; }
+    p  { color: #555; margin: 10px 0; line-height: 1.6; }
+    .badge {
+      display: inline-block;
+      background: #2b6cb0;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      margin: 5px;
+    }
+    .green { background: #059669; }
+    .info  { background: #f0f4f8; border-radius: 8px; padding: 16px; margin-top: 20px; }
+    .info p { color: #333; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Customer Management System</h1>
+    <p>Cloud Application Development — Practical Test 2</p>
+    <p>ICC 7211 | Harare Institute of Technology</p>
+
+    <div style="margin: 20px 0;">
+      <span class="badge">PHP 8.2</span>
+      <span class="badge">MySQL PDO</span>
+      <span class="badge green">Deployed ✓</span>
+      <span class="badge green">CI/CD Active ✓</span>
+    </div>
+
+    <div class="info">
+      <p><strong>Application:</strong> customers.php</p>
+      <p><strong>Database:</strong> MySQL via PDO with prepared statements</p>
+      <p><strong>Pipeline:</strong> GitHub Actions — Build → Test → Security → Deploy</p>
+      <p><strong>Source Code:</strong> Available on GitHub</p>
+    </div>
+  </div>
+</body>
+</html>
